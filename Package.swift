@@ -16,7 +16,7 @@ let package = Package(
             targets: ["AlamofireXMLRPC"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/Alamofire/Alamofire", .upToNextMajor(from: "5.2.0"))
+        .package(url: "https://github.com/Alamofire/Alamofire", .upToNextMajor(from: "5.2.0")),
         .package(url: "https://github.com/tsanto/AEXML", .upToNextMajor(from: "5.0.0"))
     ],
     targets: [
