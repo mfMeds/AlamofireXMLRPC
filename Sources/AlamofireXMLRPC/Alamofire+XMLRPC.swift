@@ -24,7 +24,7 @@ class XMLRPCCallDocument: AEXMLDocument {
 }
 
 // MARK: -
-extension SessionManager {
+extension Session {
     public func requestXMLRPC(_ url: URLConvertible, methodName: String, parameters: [Any]?, headers: [String : String]? = nil) -> DataRequest {
 
         let request = XMLRPCRequest(url: url, methodName: methodName, parameters: parameters, headers: headers)
@@ -34,13 +34,13 @@ extension SessionManager {
 }
 
 public func request(_ url: URLConvertible, methodName: String, parameters: [Any]?, headers: [String : String]? = nil) -> DataRequest {
-    return SessionManager.default.requestXMLRPC(
+    return Session.default.requestXMLRPC(
         url, methodName: methodName, parameters: parameters, headers: headers
     )
 }
 
 public func request(_ XMLRPCRequest: XMLRPCRequestConvertible) -> DataRequest {
-    return SessionManager.default.request(XMLRPCRequest)
+    return Session.default.request(XMLRPCRequest)
 }
 
 // MARK: - RequestConvertible
@@ -79,41 +79,40 @@ fileprivate struct XMLRPCRequest: XMLRPCRequestConvertible {
     var headers: [String : String]?
 }
 
-// MARK: - Response
-extension DataRequest {
-    public static func XMLRPCResponseSerializer() -> DataResponseSerializer<XMLRPCNode> {
-        return DataResponseSerializer { request, response, data, error in
-            guard error == nil else {
-                return .failure(XMLRPCError.networkError(error))
-            }
 
-            let result = XMLResponseSerializer().serializeResponse(request, response, data, error)
+struct XMLRPCResponseSerializer5: ResponseSerializer {
+    func serialize(request: URLRequest?, response: HTTPURLResponse?, data: Data?, error: Error?) throws -> XMLRPCNode {
+        guard error == nil else { throw error! }
+        
+        let result: AEXMLDocument
+        do {
+            result = try XMLResponseSerializer5().serialize(request: request, response: response, data: data, error: error)
+        } catch {
+            throw XMLRPCError.xmlSerializationFailed
+        }
 
-            guard let xml = result.value , result.isSuccess else {
-                return .failure(XMLRPCError.xmlSerializationFailed)
-            }
+        let xmlResponse = result[.methodResponse]
+        guard xmlResponse.error == nil else {
+            throw XMLRPCError.nodeNotFound(node: .methodResponse)
+        }
 
-            let xmlResponse = xml[.methodResponse]
-            guard xmlResponse.error == nil else {
-                return .failure(XMLRPCError.nodeNotFound(node: .methodResponse))
-            }
+        let fault = xmlResponse[.fault]
+        guard fault.error != nil else {
+            throw XMLRPCError.fault(node: XMLRPCNode(xml: fault[.value]))
+        }
 
-            let fault = xmlResponse[.fault]
-            guard fault.error != nil else {
-                return .failure(XMLRPCError.fault(node: XMLRPCNode(xml: fault[.value])))
-            }
-
-            let params = xmlResponse[.parameters]
-            if params.rpcNode == .parameters {
-                return .success(XMLRPCNode(xml:params))
-            } else {
-                return .failure(XMLRPCError.nodeNotFound(node: .parameters))
-            }
+        let params = xmlResponse[.parameters]
+        if params.rpcNode == .parameters {
+            return XMLRPCNode(xml:params)
+        } else {
+            throw XMLRPCError.nodeNotFound(node: .parameters)
         }
     }
+}
 
-    @discardableResult public func responseXMLRPC(queue: DispatchQueue? = nil, completionHandler: @escaping (DataResponse<XMLRPCNode>) -> Void) -> Self {
-
-        return response(queue:queue, responseSerializer: DataRequest.XMLRPCResponseSerializer(), completionHandler: completionHandler)
+// MARK: - Response
+extension DataRequest {
+    @discardableResult public func responseXMLRPC(queue: DispatchQueue? = nil, completionHandler: @escaping (DataResponse<XMLRPCNode, AFError>) -> Void) -> Self {
+        return response(queue: queue ?? .main, responseSerializer: XMLRPCResponseSerializer5(), completionHandler: completionHandler)
     }
 }

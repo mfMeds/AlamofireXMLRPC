@@ -16,8 +16,8 @@ let package = Package(
             targets: ["AlamofireXMLRPC"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/Alamofire/Alamofire", from: "4.9.0"),
-        .package(url: "https://github.com/tsanto/AEXML", from: "5.0.0")
+        .package(url: "https://github.com/Alamofire/Alamofire", .upToNextMajor: "5.2.0"),
+        .package(url: "https://github.com/tsanto/AEXML", .upToNextMajor: "5.0.0")
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
