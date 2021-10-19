@@ -17,7 +17,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/Alamofire/Alamofire", .upToNextMajor(from: "5.2.0")),
-        .package(url: "https://github.com/Baw-Appie/AEXML", .upToNextMajor(from: "4.6.2"))
+        .package(url: "https://github.com/mfMeds/AEXML", .upToNextMajor(from: "4.6.2"))
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
