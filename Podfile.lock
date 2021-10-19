@@ -3,7 +3,7 @@ PODS:
   - Alamofire (5.4.0)
 
 DEPENDENCIES:
-  - AEXML (from `https://github.com/tadija/AEXML.git`, branch `master`)
+  - AEXML (from `https://github.com/mfMeds/AEXML.git`, branch `master`)
   - Alamofire (from `https://github.com/Alamofire/Alamofire.git`, branch `master`)
 
 EXTERNAL SOURCES:
